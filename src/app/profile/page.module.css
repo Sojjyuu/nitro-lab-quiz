@@ -1,0 +1,236 @@
+.wrapper {
+  min-height: 100svh;
+  padding: clamp(32px, 6vw, 80px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: radial-gradient(circle at top, rgba(20, 184, 166, 0.16), transparent 60%);
+}
+
+.card {
+  width: min(960px, 100%);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 32px;
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  box-shadow: 0 30px 60px rgba(13, 148, 136, 0.18);
+  padding: clamp(28px, 4vw, 48px);
+  display: grid;
+  gap: clamp(24px, 4vw, 36px);
+}
+
+.header {
+  display: flex;
+  gap: clamp(24px, 4vw, 40px);
+  align-items: center;
+}
+
+.avatar {
+  width: clamp(96px, 18vw, 140px);
+  height: clamp(96px, 18vw, 140px);
+  border-radius: 32px;
+  object-fit: cover;
+  border: 3px solid rgba(13, 148, 136, 0.4);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 40px);
+}
+
+.header p {
+  margin: 6px 0 12px;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #047857;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section {
+  display: grid;
+  gap: 16px;
+}
+
+.section h2 {
+  margin: 0;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0d9488;
+}
+
+.section dl {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.section dl div {
+  background: rgba(240, 253, 250, 0.8);
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+.section dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(15, 118, 110, 0.7);
+}
+
+.section dd {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.school,
+.advisor {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: rgba(236, 253, 245, 0.85);
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(45, 212, 191, 0.26);
+}
+
+.school img,
+.advisor img {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  object-fit: cover;
+  background: rgba(15, 118, 110, 0.12);
+}
+
+.schoolName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.schoolMeta {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.metaFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.75);
+  border-top: 1px solid rgba(45, 212, 191, 0.25);
+  padding-top: 16px;
+}
+
+.message {
+  margin: 0;
+  font-size: 16px;
+  color: #0f172a;
+  text-align: center;
+  padding: 48px;
+  background: rgba(240, 253, 250, 0.7);
+  border-radius: 24px;
+  border: 1px dashed rgba(45, 212, 191, 0.3);
+}
+
+.error {
+  color: #b91c1c;
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(254, 226, 226, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  .wrapper {
+    background: radial-gradient(circle at top, rgba(6, 182, 212, 0.2), transparent 60%);
+  }
+
+  .card {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(13, 148, 136, 0.35);
+    box-shadow: 0 40px 80px rgba(15, 23, 42, 0.6);
+  }
+
+  .header p,
+  .section dd,
+  .schoolName,
+  .metaFooter {
+    color: #e0f2f1;
+  }
+
+  .badge {
+    background: rgba(16, 185, 129, 0.28);
+    color: #bbf7d0;
+  }
+
+  .section dl div {
+    background: rgba(14, 116, 144, 0.3);
+    border-color: rgba(45, 212, 191, 0.4);
+  }
+
+  .school,
+  .advisor {
+    background: rgba(14, 116, 144, 0.28);
+  }
+
+  .schoolMeta {
+    color: rgba(190, 242, 240, 0.8);
+  }
+
+  .message {
+    background: rgba(15, 118, 110, 0.25);
+    border-color: rgba(45, 212, 191, 0.4);
+    color: #e0f2f1;
+  }
+
+  .error {
+    color: #fecaca;
+    background: rgba(248, 113, 113, 0.18);
+    border-color: rgba(248, 113, 113, 0.4);
+  }
+}
+
+@media (max-width: 720px) {
+  .wrapper {
+    padding: clamp(24px, 8vw, 48px);
+  }
+
+  .card {
+    padding: clamp(20px, 6vw, 32px);
+    border-radius: 24px;
+  }
+
+  .header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .avatar {
+    margin-bottom: 12px;
+  }
+
+  .school,
+  .advisor {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .metaFooter {
+    justify-content: center;
+  }
+}
