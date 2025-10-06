@@ -6,7 +6,7 @@ interface LikePayload {
   action?: "like" | "unlike";
 }
 
-// à¸Ÿà¸±à¸‡à¸à¹Œà¸Šà¸±à¸™ parse JSON à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢
+// ฟังก์ชัน parse JSON ปลอดภัย
 function parseJsonSafely<T>(text: string): T | string | null {
   if (!text) return null;
   try {
@@ -16,7 +16,7 @@ function parseJsonSafely<T>(text: string): T | string | null {
   }
 }
 
-// à¸Ÿà¸±à¸‡à¸à¹Œà¸Šà¸±à¸™à¸¢à¸´à¸‡ request à¹„à¸›à¸¢à¸±à¸‡ API à¸ˆà¸£à¸´à¸‡
+// ฟังก์ชันส่ง request ไปยัง API จริง
 async function forwardLike({
   endpoint,
   method,
@@ -28,19 +28,28 @@ async function forwardLike({
   method: "POST" | "DELETE";
   authorization: string;
   apiKey: string;
-  body: string;
+  body?: string; // ทำให้ body เป็น optional สำหรับ DELETE ที่มี ID ใน path
 }) {
-  return fetch(buildApiUrl(endpoint), {
+  const fetchOptions: RequestInit = {
     method,
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json",
       Authorization: authorization,
       "x-api-key": apiKey,
     },
-    body,
     cache: "no-store",
-  });
+  };
+
+  // สำหรับ DELETE ที่มี ID ใน path ไม่ส่ง body และ Content-Type
+  if (body) {
+    fetchOptions.headers = {
+      ...fetchOptions.headers,
+      "Content-Type": "application/json",
+    };
+    fetchOptions.body = body;
+  }
+
+  return fetch(buildApiUrl(endpoint), fetchOptions);
 }
 
 export async function POST(request: NextRequest) {
@@ -69,10 +78,9 @@ export async function POST(request: NextRequest) {
 
   const action = payload.action === "unlike" ? "unlike" : "like";
   const method: "POST" | "DELETE" = action === "unlike" ? "DELETE" : "POST";
-  const forwardedBody = JSON.stringify({ statusId });
   const encodedId = encodeURIComponent(statusId);
 
-  // ðŸ” fallback endpoint à¸«à¸¥à¸²à¸¢à¹à¸šà¸š
+  // 🔁 fallback endpoint หลายแบบ
   const candidateEndpoints =
     action === "like"
       ? [
@@ -83,14 +91,32 @@ export async function POST(request: NextRequest) {
           `/status/${encodedId}/likes`,
         ]
       : [
+          // ปรับ endpoints สำหรับ unlike ให้ครอบคลุมมากขึ้น โดยใช้ DELETE สำหรับ remove like
+          // และ POST สำหรับบาง API ที่ใช้ action=unlike
+          `/status/${encodedId}/like`, // DELETE to remove like
+          `/status/${encodedId}/likes`, // DELETE to remove like
           `/status/unlike`,
           `/unlike`,
           `/status/${encodedId}/unlike`,
           `/status/unlike/${encodedId}`,
-          `/status/${encodedId}/likes/delete`,
+          // เพิ่มตัวเลือก POST สำหรับ unlike ถ้า API ใช้ POST แทน DELETE
+          `/status/${encodedId}/toggle`, // บาง API ใช้ toggle กับ action ใน body
         ];
 
   for (const endpoint of candidateEndpoints) {
+    // ถ้าเป็น POST หรือ endpoint ไม่มี ID ใน path ให้ส่ง body
+    // สำหรับ DELETE ที่มี ID ใน path ไม่ส่ง body เพื่อความเข้ากันได้
+    const useBody = method === "POST" || !endpoint.includes(encodedId);
+    let forwardedBody: string | undefined;
+    if (useBody) {
+      if (action === "unlike" && endpoint.includes("/toggle")) {
+        // สำหรับ toggle endpoint ส่ง action ใน body
+        forwardedBody = JSON.stringify({ statusId, action: "unlike" });
+      } else {
+        forwardedBody = JSON.stringify({ statusId });
+      }
+    }
+
     try {
       const upstream = await forwardLike({
         endpoint,
@@ -110,7 +136,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // à¸–à¹‰à¸²à¹€à¸ˆà¸­ endpoint à¸—à¸µà¹ˆà¹„à¸¡à¹ˆà¹ƒà¸Šà¹ˆ 404,405 à¹ƒà¸«à¹‰à¸«à¸¢à¸¸à¸”à¹€à¸¥à¸¢
+      // ถ้า endpoint ที่ไม่ใช่ 404,405,501 ให้ return ทันที
       if (![404, 405, 501].includes(upstream.status)) {
         return NextResponse.json(
           typeof parsed === "string" ? { message: parsed } : parsed,
@@ -119,7 +145,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       console.error("[classroom/like] network error", error);
-      return NextResponse.json({ message: "Network error" }, { status: 502 });
+      // ไม่ return error ทันที แต่ลอง endpoint ถัดไป
     }
   }
 
