@@ -219,6 +219,18 @@
   gap: 4px;
 }
 
+.commentMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.commentAuthor {
+  font-weight: 600;
+  color: #4c1d95;
+}
+
 .comments li time {
   font-size: 12px;
   color: #5b21b6;
@@ -314,6 +326,10 @@
   .comments li {
     background: rgba(88, 28, 135, 0.4);
     color: #ddd6fe;
+  }
+
+  .commentAuthor {
+    color: #ede9fe;
   }
 
   .comments li time {

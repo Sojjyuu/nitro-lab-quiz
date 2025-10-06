@@ -10,7 +10,7 @@ import {
   likeStatus,
   unlikeStatus,
 } from "../lib/api/api";
-import type { StatusItem } from "../types";
+import type { Comment as CommentItem, StatusItem } from "../types";
 import { getClientToken } from "../lib/api/session";
 
 type Flash = {
@@ -61,7 +61,13 @@ const normalizeStatuses = (list: StatusItem[], currentUserId: string | null): St
       ? status.like.map((entry) => (typeof entry === "string" ? entry : { ...entry }))
       : status.like,
     comment: Array.isArray(status.comment)
-      ? status.comment.map((comment) => ({ ...comment }))
+      ? status.comment.map((comment) => ({
+          ...comment,
+          createdBy:
+            typeof comment.createdBy === "string"
+              ? comment.createdBy
+              : { ...comment.createdBy },
+        }))
       : status.comment,
   }));
 
@@ -71,9 +77,58 @@ const cloneStatus = (status: StatusItem): StatusItem => ({
     ? status.like.map((entry) => (typeof entry === "string" ? entry : { ...entry }))
     : status.like,
   comment: Array.isArray(status.comment)
-    ? status.comment.map((comment) => ({ ...comment }))
+    ? status.comment.map((comment) => ({
+        ...comment,
+        createdBy:
+          typeof comment.createdBy === "string"
+            ? comment.createdBy
+            : { ...comment.createdBy },
+      }))
     : status.comment,
 });
+
+const UNKNOWN_AUTHOR = "Unknown member";
+
+type AuthorLike =
+  | string
+  | {
+      name?: string;
+      firstname?: string;
+      lastname?: string;
+      email?: string;
+      _id?: string;
+    };
+
+const buildFullName = (firstname?: string, lastname?: string): string | undefined => {
+  const segments = [firstname, lastname]
+    .map((segment) => segment?.trim())
+    .filter((segment): segment is string => Boolean(segment));
+
+  return segments.length > 0 ? segments.join(" ") : undefined;
+};
+
+const resolveAuthorName = (createdBy: AuthorLike, owner?: string): string => {
+  if (typeof createdBy === "string") {
+    return owner?.trim() || createdBy || UNKNOWN_AUTHOR;
+  }
+
+  const fullName = buildFullName(createdBy.firstname, createdBy.lastname);
+
+  return (
+    createdBy.name?.trim() ||
+    fullName ||
+    owner?.trim() ||
+    createdBy.email?.trim() ||
+    createdBy._id ||
+    UNKNOWN_AUTHOR
+  );
+};
+
+const resolveStatusAuthorName = (status: StatusItem): string =>
+  resolveAuthorName(status.createdBy, status.owner);
+
+const resolveCommentAuthorName = (comment: CommentItem): string =>
+  resolveAuthorName(comment.createdBy, comment.owner);
 
 export default function StatusesPage() {
   const router = useRouter();
@@ -304,7 +359,7 @@ export default function StatusesPage() {
           <article key={status._id} className={styles.card}>
             <header className={styles.cardHeader}>
               <div className={styles.cardMeta}>
-                <h2>{typeof status.createdBy === "string" ? status.createdBy : status.createdBy.name}</h2>
+                <h2>{resolveStatusAuthorName(status)}</h2>
                 <time dateTime={status.createdAt}>
                   {new Date(status.createdAt).toLocaleString()}
                 </time>
@@ -329,10 +384,13 @@ export default function StatusesPage() {
                 <ul>
                   {status.comment.map((comment) => (
                     <li key={comment._id}>
+                      <div className={styles.commentMeta}>
+                        <span className={styles.commentAuthor}>{resolveCommentAuthorName(comment)}</span>
+                        <time dateTime={comment.createdAt}>
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </time>
+                      </div>
                       <p>{comment.content}</p>
-                      <time dateTime={comment.createdAt}>
-                        {new Date(comment.createdAt).toLocaleString()}
-                      </time>
                     </li>
                   ))}
                 </ul>

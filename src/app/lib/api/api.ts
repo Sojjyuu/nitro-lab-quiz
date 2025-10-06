@@ -67,16 +67,18 @@ type ClassmatesResponse = {
 
 type StatusAuthor = {
   _id: string;
-  name: string;
-  email: string;
-  image: string;
+  name?: string;
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  image?: string;
 };
 
 type Comment = {
   _id: string;
   content: string;
-  createdBy: string;
-  like: string[];
+  createdBy: string | StatusAuthor;
+  like: (string | StatusAuthor)[];
   createdAt: string;
 };
 
